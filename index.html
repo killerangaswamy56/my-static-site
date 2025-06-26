@@ -1,131 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Teko&display=swap" rel="stylesheet">
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Landing Page</title>
-    <style type="text/css">
-        *{
-            padding: 0;
-            margin: 0;
-            box-sizing: border-box;
-        }
-        header{
-            width: 100%;
-            height: 100vh;
-            background:linear-gradient(rgba(0,0,0,0.8),rgba(0,0,0,0.2)),url("Background1.jpg");
-            background-size: cover;
-        }
-        nav{
-            width: 100%;
-            height: 100px;
-            background-size: cover;
-            color: white;
-            display: flex;
-            justify-content: space-around;
-            align-items: center;
-            font-family: sans-serif;
-        }
-        .logo{
-            font-size: 2em;
-            letter-spacing: 2px;
-            font-family: cursive;
-
-        }
-        .Menu a{
-            text-decoration: none;
-            color: white;
-            padding: 10px 20px;
-            font-size: 20px;
-            position: relative;
-        }
-        .Menu a:before{
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 0%;
-            height: 100%;
-            border-bottom: 2px solid rgb(9, 255, 0);
-            transition: 0.4s linear;
-        }
-
-        .Menu a:hover:before{
-            width: 90%;
-        }
-        
-        .Register a{
-            text-decoration: none;
-            color: white;
-            padding: 10px 20px;
-            font-size: 20px;
-            background: orange;
-            border-radius: 5px;
-            transition: 0.4s linear;
-        }
-
-        .Register a:hover{
-            background: transparent;
-            border: 1px solid red;
-        }
-        .h-txt{
-            max-width: 650px;
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%,-50%);
-            text-align: center;
-            color: white;
-        }
-        .h-txt span{
-            letter-spacing: 5px;
-        }
-        
-        .h-txt h1{
-            font-size: 3.5em;
-        }
-        
-        .h-txt a{
-            text-decoration: none;
-            background: rgb(65, 8, 235);
-            color: white;
-            padding: 15px,25px;
-            letter-spacing: 5px;
-            transition: 0.4s linear;
-            border-radius: 10px;
-        }
-        .h-txt a:hover{
-        background: transparent;
-            border: 1px solid red;
-        }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Weather Report</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 2rem;
+      background: #e3f2fd;
+      text-align: center;
+    }
+    input, button {
+      padding: 0.5rem;
+      font-size: 1rem;
+    }
+    #weather {
+      margin-top: 1rem;
+      background: white;
+      padding: 1rem;
+      border-radius: 8px;
+      display: inline-block;
+    }
+  </style>
 </head>
 <body>
-    <header>
-        <nav>
-            <div class="logo">
-                <b>Kerala Tourism  56</b>
-            </div>
-            <div class="Menu">
-                <a href="#"><b>Home</b></a>
-                <a href="#"><b>Boat surfing </b></a>
-                <a href="#"><b>Best Offer's</b></a>
-                <a href="#"><b>Contact Us</b></a>
-            </div>
-            <div class="Register">
-                <a href="#">Register</a>
-            </div>
-        </nav>
-        <section class="h-txt">
-            <span><b>Enjoy Every Minute</b></span>
-            <h1><b>Happy Travel Agency</b></h1>
-            <br>
-            <a href="#"><b>Book Your Trip Now</b></a>
-        </section>
-</header>   
+  <h1>Real-Time Weather Report</h1>
+  <input type="text" id="cityInput" placeholder="Enter city name" />
+  <button onclick="getWeather()">Get Weather</button>
+  <div id="weather"></div>
+
+  <script>
+    const OPENCAGE_API_KEY = 'https://api.open-meteo.com/v1/forecast?latitude=52.52&longitude=13.41&hourly=temperature_2m,relative_humidity_2m,dew_point_2m,apparent_temperature,precipitation_probability,precipitation,rain,showers,snowfall,snow_depth,temperature_180m'; // Replace this
+
+    async function getCoordinates(city) {
+      const url = `https://api.opencagedata.com/geocode/v1/json?q=${encodeURIComponent(city)}&key=${OPENCAGE_API_KEY}`;
+      const res = await fetch(url);
+      const data = await res.json();
+      if (data.results.length > 0) {
+        return data.results[0].geometry;
+      } else {
+        throw new Error("City not found");
+      }
+    }
+
+    async function getWeather() {
+      const city = document.getElementById('cityInput').value.trim();
+      const weatherDiv = document.getElementById('weather');
+      weatherDiv.innerHTML = 'Loading...';
+
+      try {
+        const coords = await getCoordinates(city);
+        const { latitude, longitude } = coords;
+
+        const weatherUrl = `https://api.open-meteo.com/v1/forecast?latitude=${latitude}&longitude=${longitude}&current_weather=true`;
+        const res = await fetch(weatherUrl);
+        const data = await res.json();
+
+        const w = data.current_weather;
+        weatherDiv.innerHTML = `
+          <h2>Weather in ${city}</h2>
+          <p><strong>Temperature:</strong> ${w.temperature}°C</p>
+          <p><strong>Wind Speed:</strong> ${w.windspeed} km/h</p>
+          <p><strong>Time:</strong> ${w.time}</p>
+        `;
+      } catch (err) {
+        weatherDiv.innerHTML = `<p style="color:red;">Error: ${err.message}</p>`;
+      }
+    }
+  </script>
 </body>
 </html>
